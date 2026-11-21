@@ -1,0 +1,23 @@
+[
+  {
+    "date": "2026-11-19",
+    "upstream": "spring-petclinic/spring-petclinic-modulith",
+    "fork_url": "https://github.com/elkouaym/spring-petclinic-modulith",
+    "topic": "java",
+    "description": "Spring Boot modular monolith and domain events"
+  },
+  {
+    "date": "2026-11-20",
+    "upstream": "docker/awesome-compose",
+    "fork_url": "https://github.com/elkouaym/awesome-compose",
+    "topic": "devops",
+    "description": "Docker Compose with backend and database services"
+  },
+  {
+    "date": "2026-11-21",
+    "upstream": "DataWithBaraa/sql-data-analytics-project",
+    "fork_url": "https://github.com/elkouaym/sql-data-analytics-project",
+    "topic": "sql-data",
+    "description": "Sales analytics in SQL"
+  }
+]
