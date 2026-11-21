@@ -1,39 +1,47 @@
-name: Daily Open Source Forks
+name: Daily educational open-source fork
 
 on:
   schedule:
-    - cron: '13 8 * * *'
+    - cron: '17 9 * * *'
+      timezone: Africa/Casablanca
   workflow_dispatch:
+    inputs:
+      dry_run:
+        type: boolean
+        description: "Only inspect a candidate; do not create a fork"
+        required: true
+        default: true
 
 permissions:
   contents: write
 
 concurrency:
-  group: daily-source-fork
+  group: one-educational-fork-per-day
   cancel-in-progress: false
 
 jobs:
-  choose-and-fork:
+  curator:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
-      - name: Checkout curator repository
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Find one project and fork it
+      - name: Confirm script works (unit tests)
+        run: python -m unittest discover -s tests -v
+      - name: Try one attributed public fork
         env:
           FORK_TOKEN: ${{ secrets.FORK_TOKEN }}
-          GITHUB_OWNER: elkouaym
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
         run: python scripts/daily_fork.py
-      - name: Save educational library and avoid repeats
+      - name: Save the verified fork in learning library
+        if: success()
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add data/fork_history.json LIBRARY.md
           if ! git diff --cached --quiet; then
-            git commit -m 'docs: index new educational fork'
+            git commit -m "docs: index verified educational fork"
             git push
           fi
