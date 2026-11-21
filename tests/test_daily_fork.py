@@ -10,7 +10,9 @@ from scripts import daily_fork as curator
 
 class CuratorTests(unittest.TestCase):
     def test_local_day_conversion(self):
-        assert curator.local_date("2026-11-21T23:30:00Z") == dt.date(2026, 11, 22)
+        # Casablanca used UTC+1 in July and UTC+0 during Ramadan in March.
+        self.assertEqual(curator.local_date("2024-07-01T23:30:00Z"), dt.date(2024, 7, 2))
+        self.assertEqual(curator.local_date("2024-03-20T23:30:00Z"), dt.date(2024, 3, 20))
 
     def test_eligible_requires_license_and_recent_activity(self):
         good = {
