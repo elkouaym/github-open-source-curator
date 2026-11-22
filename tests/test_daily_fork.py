@@ -38,6 +38,17 @@ class CuratorTests(unittest.TestCase):
                 self.assertEqual(result, "already_exists")
                 self.assertEqual(mocked.call_count, 1)
 
+    def test_renamed_fork_skips_its_original_project(self):
+        existing = [{"name": "my-notes", "full_name": "elkouaym/my-notes", "fork": True}]
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(curator, "HISTORY_FILE", Path(tmp) / "history.json"), \
+             patch.object(curator, "get_my_repositories", return_value=existing), \
+             patch.object(curator, "candidate_order", return_value=[("docker/awesome-compose", "devops", "Docker")]), \
+             patch.object(curator, "api", return_value={"parent": {"full_name": "Docker/Awesome-Compose"}}) as api:
+            with self.assertRaisesRegex(RuntimeError, "No eligible"):
+                curator.run(token="", today=dt.date(2026, 11, 22), dry_run=True)
+            api.assert_called_once_with("/repos/elkouaym/my-notes", token="")
+
     def test_record_keeps_attribution_and_deduplicates(self):
         with tempfile.TemporaryDirectory() as tmp:
             with patch.object(curator, "HISTORY_FILE", Path(tmp) / "data" / "history.json"), \
