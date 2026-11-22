@@ -162,19 +162,19 @@ def run(*, token: str, today: dt.date, dry_run: bool = False) -> str:
         return "already_recorded"
 
     owned_names = {r["name"].lower() for r in existing}
-    already_forked = set()
-    for r in existing:
-        if r.get("fork"):
-            # Listing repositories omits the parent. We must not fork a second time
-            # from another upstream with the same destination name.
-            already_forked.add(r["name"].lower())
     known_upstreams = {e.get("upstream", "").lower() for e in entries}
+    for repo in existing:
+        if repo.get("fork"):
+            detail = api("/repos/" + repo["full_name"], token=token)
+            known_upstreams.add(detail["parent"]["full_name"].lower())
+            if detail.get("source"):
+                known_upstreams.add(detail["source"]["full_name"].lower())
 
     for upstream, topic, description in candidate_order(entries):
         if upstream.lower() in known_upstreams:
             continue
         name = upstream.split("/")[-1]
-        if name.lower() in owned_names or name.lower() in already_forked:
+        if name.lower() in owned_names:
             continue
         try:
             metadata = api("/repos/" + upstream, token=token)
@@ -199,7 +199,7 @@ def run(*, token: str, today: dt.date, dry_run: bool = False) -> str:
 
         print("Forking public licensed repo:", upstream)
         api("/repos/" + upstream + "/forks", token=token, method="POST",
-            payload={"default_branch_only": True})
+            payload={"default_branch_only": False})
         for attempt in range(15):
             fork = api(f"/repos/{OWNER}/{quote(name)}", token=token, missing_ok=True)
             parent = ((fork or {}).get("parent") or {}).get("full_name", "")
